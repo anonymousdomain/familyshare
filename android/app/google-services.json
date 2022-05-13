@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "782025733647",
+    "project_id": "familyshare-b1d47",
+    "storage_bucket": "familyshare-b1d47.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:782025733647:android:ba42bf0204997a21ad557a",
+        "android_client_info": {
+          "package_name": "com.example.familyshare"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "782025733647-j897h42pv02017kh3a7pmkv8kq8imfqo.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBESxQR_Yw0xEcGZblB_oeVc0G068eseUA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "782025733647-j897h42pv02017kh3a7pmkv8kq8imfqo.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
