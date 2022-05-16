@@ -1,3 +1,9 @@
+import 'package:familyshare/pages/activity_feed.dart';
+import 'package:familyshare/pages/profile.dart';
+import 'package:familyshare/pages/search.dart';
+import 'package:familyshare/pages/timeline.dart';
+import 'package:familyshare/pages/upload.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
@@ -10,30 +16,96 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   bool isAuth = false;
-
+  late PageController pageController;
+  int pageIndex = 0;
   @override
   void initState() {
     super.initState();
-    googleSignIn.onCurrentUserChanged.listen((event) {
-      if (event != null) {
-        print('user:${event}');
-        setState(() {
-          isAuth = true;
-        });
-      } else {
-        setState(() {
-          isAuth = false;
-        });
-      }
+    pageController = PageController();
+    googleSignIn.onCurrentUserChanged.listen((account) {
+      handleSignIn(account!);
+    }, onError: (err) {
+      print('Error signing in:$err');
     });
+    //reauthenticate user when app is opened
+    googleSignIn.signInSilently(suppressErrors: false).then((account) {
+      handleSignIn(account!);
+    }).catchError((err) {
+      print('Error signing in:$err');
+    });
+  }
+
+  handleSignIn(GoogleSignInAccount account) {
+    if (account != null) {
+      setState(() {
+        isAuth = true;
+      });
+    } else {
+      setState(() {
+        isAuth = false;
+      });
+    }
   }
 
   login() {
     googleSignIn.signIn();
   }
 
-  Widget buildAuthScreen() {
-    return Text('auth');
+  logout() {
+    setState(() {
+      isAuth = false;
+    });
+    googleSignIn.signOut();
+  }
+
+  onPageChanged(int pageIndex) {
+    setState(() {
+      this.pageIndex = pageIndex;
+    });
+  }
+
+  onTap(int pageIndex) {
+    pageController.animateToPage(
+      pageIndex,
+      duration: Duration(milliseconds: 300),
+      curve: Curves.easeInCirc
+      );
+  }
+
+  @override
+  void dispose() {
+    pageController.dispose();
+    // TODO: implement dispose
+    super.dispose();
+  }
+
+  Scaffold buildAuthScreen() {
+    return Scaffold(
+      body: PageView(
+        children: [
+          Timeline(),
+          ActivityFeed(),
+          Upload(),
+          Search(),
+          Profile(),
+        ],
+        controller: pageController,
+        onPageChanged: onPageChanged,
+        physics: NeverScrollableScrollPhysics(),
+      ),
+      bottomNavigationBar: CupertinoTabBar(
+        currentIndex: pageIndex,
+        onTap: onTap,
+        activeColor: Theme.of(context).primaryColor,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.whatshot),),
+          BottomNavigationBarItem(icon: Icon(Icons.notifications_active),),
+          BottomNavigationBarItem(icon: Icon(Icons.photo_camera),),
+          BottomNavigationBarItem(icon: Icon(Icons.search),),
+          BottomNavigationBarItem(icon: Icon(Icons.account_circle)),
+        ],
+      ),
+    );
   }
 
   Widget buildUnAuthScreen() {
@@ -56,7 +128,7 @@ class _HomeState extends State<Home> {
                   fontFamily: "Roboto", fontSize: 50.0, color: Colors.white),
             ),
             GestureDetector(
-              onTap:login,
+              onTap: login,
               child: Container(
                 width: 50.0,
                 height: 50.0,
