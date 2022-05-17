@@ -23,19 +23,19 @@ class _HomeState extends State<Home> {
     super.initState();
     pageController = PageController();
     googleSignIn.onCurrentUserChanged.listen((account) {
-      handleSignIn(account!);
+      handleSignIn(account);
     }, onError: (err) {
       print('Error signing in:$err');
     });
     //reauthenticate user when app is opened
     googleSignIn.signInSilently(suppressErrors: false).then((account) {
-      handleSignIn(account!);
+      handleSignIn(account);
     }).catchError((err) {
       print('Error signing in:$err');
     });
   }
 
-  handleSignIn(GoogleSignInAccount account) {
+  handleSignIn(account) {
     if (account != null) {
       setState(() {
         isAuth = true;

@@ -1,6 +1,7 @@
 
 
 import 'package:familyshare/widgets/header.dart';
+import 'package:familyshare/widgets/progress.dart';
 import 'package:flutter/material.dart';
 
 class Profile extends StatefulWidget {
@@ -13,7 +14,7 @@ class _ProfileState extends State<Profile> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: header(context,titleText: 'profile'),
-      body: Text('profile'),
+      body:linearProgress(),
     );
   }
 }
