@@ -18,11 +18,13 @@ class _TimelineState extends State<Timeline> {
     getUsers();
   }
 
-  getUsers() {
-    db.collection('users').get().then((QuerySnapshot snapshot) {
-      snapshot.docs.forEach((DocumentSnapshot doc) {
-        print(doc.data());
-      });
+  getUsers() async{
+   final QuerySnapshot snapshot= await db.collection('users').where('username',isEqualTo: 'dawitMekonnen').where('pageCount',isEqualTo: 3).get();
+    
+    snapshot.docs.forEach((DocumentSnapshot doc) {
+      print(doc.data());
+      print(doc.id);
+      print(doc.exists);
     });
   }
 
