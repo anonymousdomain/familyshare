@@ -1,4 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:familyshare/pages/activity_feed.dart';
+import 'package:familyshare/pages/create_account.dart';
 import 'package:familyshare/pages/profile.dart';
 import 'package:familyshare/pages/search.dart';
 import 'package:familyshare/pages/timeline.dart';
@@ -37,6 +39,7 @@ class _HomeState extends State<Home> {
 
   handleSignIn(account) {
     if (account != null) {
+      createUser();
       setState(() {
         isAuth = true;
       });
@@ -65,11 +68,18 @@ class _HomeState extends State<Home> {
   }
 
   onTap(int pageIndex) {
-    pageController.animateToPage(
-      pageIndex,
-      duration: Duration(milliseconds: 300),
-      curve: Curves.easeInCirc
-      );
+    pageController.animateToPage(pageIndex,
+        duration: Duration(milliseconds: 300), curve: Curves.easeInCirc);
+  }
+
+  createUser() async {
+    //check if user exists
+    final GoogleSignInAccount? user = googleSignIn.currentUser;
+    final DocumentSnapshot doc = await db.doc(user?.id).get();
+    if (!doc.exists) {
+      Navigator.push(
+          context, MaterialPageRoute(builder: (context) => CreateAccount()));
+    }
   }
 
   @override
@@ -98,10 +108,18 @@ class _HomeState extends State<Home> {
         onTap: onTap,
         activeColor: Theme.of(context).primaryColor,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.whatshot),),
-          BottomNavigationBarItem(icon: Icon(Icons.notifications_active),),
-          BottomNavigationBarItem(icon: Icon(Icons.photo_camera),),
-          BottomNavigationBarItem(icon: Icon(Icons.search),),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.whatshot),
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.notifications_active),
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.photo_camera),
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.search),
+          ),
           BottomNavigationBarItem(icon: Icon(Icons.account_circle)),
         ],
       ),

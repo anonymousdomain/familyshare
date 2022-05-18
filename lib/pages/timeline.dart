@@ -23,7 +23,7 @@ class _TimelineState extends State<Timeline> {
     return Scaffold(
       appBar: header(context, isAppTitle: true),
       body: StreamBuilder<QuerySnapshot>(
-        stream:db.snapshots(),
+        stream:db.snapshots (),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return circularProgress();
