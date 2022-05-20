@@ -14,7 +14,7 @@ class Timeline extends StatefulWidget {
 class _TimelineState extends State<Timeline> {
   @override
   void initState() {
-    Firebase.initializeApp();
+    
     super.initState();
   }
 

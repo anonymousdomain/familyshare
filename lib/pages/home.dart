@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:familyshare/models/user.dart';
 import 'package:familyshare/pages/activity_feed.dart';
 import 'package:familyshare/pages/create_account.dart';
 import 'package:familyshare/pages/profile.dart';
@@ -10,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 final googleSignIn = GoogleSignIn();
+late User currentUser;
 
 class Home extends StatefulWidget {
   @override
@@ -20,6 +22,7 @@ class _HomeState extends State<Home> {
   bool isAuth = false;
   late PageController pageController;
   int pageIndex = 0;
+  Timestamp timestamp = Timestamp.now();
   @override
   void initState() {
     super.initState();
@@ -75,11 +78,23 @@ class _HomeState extends State<Home> {
   createUser() async {
     //check if user exists
     final GoogleSignInAccount? user = googleSignIn.currentUser;
-    final DocumentSnapshot doc = await db.doc(user?.id).get();
+    DocumentSnapshot doc = await db.doc(user?.id).get();
     if (!doc.exists) {
-      Navigator.push(
+      final username = await Navigator.push(
           context, MaterialPageRoute(builder: (context) => CreateAccount()));
+      db.doc(user?.id).set({
+        'id': user?.id,
+        'username': username,
+        'photoUrl': user?.photoUrl,
+        'email': user?.email,
+        'displayName': user?.displayName,
+        'bio': '',
+        'timestamp': timestamp
+      });
     }
+    currentUser = User.fromDocument(doc);
+    print(currentUser);
+    print(currentUser.email);
   }
 
   @override
@@ -92,16 +107,17 @@ class _HomeState extends State<Home> {
   Scaffold buildAuthScreen() {
     return Scaffold(
       body: PageView(
+        controller: pageController,
+        onPageChanged: onPageChanged,
+        physics: NeverScrollableScrollPhysics(),
         children: [
-          Timeline(),
+          // Timeline(),
+          ElevatedButton(onPressed: logout, child: Text('logout')),
           ActivityFeed(),
           Upload(),
           Search(),
           Profile(),
         ],
-        controller: pageController,
-        onPageChanged: onPageChanged,
-        physics: NeverScrollableScrollPhysics(),
       ),
       bottomNavigationBar: CupertinoTabBar(
         currentIndex: pageIndex,
