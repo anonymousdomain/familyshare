@@ -1,3 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:familyshare/models/user.dart';
+import 'package:familyshare/pages/timeline.dart';
+import 'package:familyshare/widgets/progress.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -7,10 +11,26 @@ class Search extends StatefulWidget {
 }
 
 class _SearchState extends State<Search> {
+    Future<QuerySnapshot>?usersSearchResult;
+  TextEditingController searchController = TextEditingController();
+
+  clearSearch() {
+    searchController.clear();
+  }
+
+  handleSearch(String query) {
+    Future<QuerySnapshot> usersSearch =
+        db.where('displayName', isGreaterThanOrEqualTo: query).get();
+    setState(() {
+      usersSearchResult = usersSearch;
+    });
+  }
+
   AppBar buildSearchField() {
     return AppBar(
       backgroundColor: Colors.white,
       title: TextFormField(
+        controller: searchController,
         decoration: InputDecoration(
           hintText: 'search for a user...',
           filled: true,
@@ -19,10 +39,11 @@ class _SearchState extends State<Search> {
             size: 30.0,
           ),
           suffixIcon: IconButton(
-            onPressed: () => print('cleard'),
+            onPressed:clearSearch,
             icon: Icon(Icons.clear),
           ),
-        ), 
+        ),
+        onFieldSubmitted: handleSearch,
       ),
     );
   }
@@ -51,12 +72,32 @@ class _SearchState extends State<Search> {
     );
   }
 
+  buildSearchResults() {
+    return FutureBuilder<QuerySnapshot>(
+      future: usersSearchResult,
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return circularProgress();
+        }
+        List<Text> searchResults = [];
+        snapshot.data!.docs.map((doc) {
+          User user = User.fromDocument(doc);
+          searchResults.add(Text(user.displayName));
+        }).toList();
+        return ListView(
+          children: searchResults,
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).primaryColor.withOpacity(0.8),
       appBar: buildSearchField(),
-      body: buildNoContent(),
+      // ignore: unnecessary_null_comparison
+      body: usersSearchResult == null ? buildNoContent() : buildSearchResults(),
     );
   }
 }
