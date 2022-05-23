@@ -4,14 +4,14 @@ import 'package:familyshare/pages/timeline.dart';
 import 'package:familyshare/widgets/progress.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-
+import 'package:cached_network_image/cached_network_image.dart';
 class Search extends StatefulWidget {
   @override
   _SearchState createState() => _SearchState();
 }
 
 class _SearchState extends State<Search> {
-    Future<QuerySnapshot>?usersSearchResult;
+  Future<QuerySnapshot>? usersSearchResult;
   TextEditingController searchController = TextEditingController();
 
   clearSearch() {
@@ -39,7 +39,7 @@ class _SearchState extends State<Search> {
             size: 30.0,
           ),
           suffixIcon: IconButton(
-            onPressed:clearSearch,
+            onPressed: clearSearch,
             icon: Icon(Icons.clear),
           ),
         ),
@@ -79,10 +79,11 @@ class _SearchState extends State<Search> {
         if (!snapshot.hasData) {
           return circularProgress();
         }
-        List<Text> searchResults = [];
+        List<UserResult> searchResults = [];
         snapshot.data!.docs.map((doc) {
           User user = User.fromDocument(doc);
-          searchResults.add(Text(user.displayName));
+          UserResult searchResult = UserResult(user);
+          searchResults.add(searchResult);
         }).toList();
         return ListView(
           children: searchResults,
@@ -103,8 +104,38 @@ class _SearchState extends State<Search> {
 }
 
 class UserResult extends StatelessWidget {
+  final User user;
+  const UserResult(this.user);
   @override
   Widget build(BuildContext context) {
-    return Text("User Result");
+    return Container(
+      color: Theme.of(context).primaryColor.withOpacity(0.7),
+      child: Column(
+        children: [
+          GestureDetector(
+            onTap: () => print('tapped'),
+            child: ListTile(
+              leading: CircleAvatar(
+                // backgroundColor: Colors.grey,
+                backgroundImage: CachedNetworkImageProvider(user.photoUrl),
+              ),
+              title: Text(
+                user.displayName,
+                style:
+                    TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+              subtitle: Text(
+                user.username,
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ),
+          Divider(
+            height: 2.0,
+            color: Colors.white54,
+          )
+        ],
+      ),
+    );
   }
 }
