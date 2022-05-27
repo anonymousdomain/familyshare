@@ -11,7 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 final googleSignIn = GoogleSignIn();
-late User currentUser;
+User? currentUser;
 
 class Home extends StatefulWidget {
   @override
@@ -93,8 +93,7 @@ class _HomeState extends State<Home> {
       });
     }
     currentUser = User.fromDocument(doc);
-    print(currentUser);
-    print(currentUser.email);
+   
   }
 
   @override
@@ -114,7 +113,7 @@ class _HomeState extends State<Home> {
           // Timeline(),
           ElevatedButton(onPressed: logout, child: Text('logout')),
           ActivityFeed(),
-          Upload(),
+          Upload(currentUser:currentUser),
           Search(),
           Profile(),
         ],
