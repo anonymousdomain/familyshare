@@ -6,13 +6,13 @@ import 'package:familyshare/pages/profile.dart';
 import 'package:familyshare/pages/search.dart';
 import 'package:familyshare/pages/timeline.dart';
 import 'package:familyshare/pages/upload.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-
 final googleSignIn = GoogleSignIn();
 User? currentUser;
-
+ Reference storageRef = FirebaseStorage.instance.ref();
 class Home extends StatefulWidget {
   @override
   State<Home> createState() => _HomeState();
