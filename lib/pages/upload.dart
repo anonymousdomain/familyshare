@@ -1,19 +1,10 @@
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:familyshare/models/user.dart';
-import 'package:familyshare/pages/home.dart';
-import 'package:familyshare/pages/timeline.dart';
-import 'package:familyshare/widgets/progress.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:image/image.dart' as Im;
-import 'package:uuid/uuid.dart';
-import 'home.dart';
 
 class Upload extends StatefulWidget {
   final User? currentUser;
@@ -24,11 +15,7 @@ class Upload extends StatefulWidget {
 
 class _UploadState extends State<Upload> {
   PickedFile? file;
-  bool isUploading = false;
-  String postId = Uuid().v4();
-  Timestamp timestamp = Timestamp.now();
-  TextEditingController locationController = TextEditingController();
-  TextEditingController captionController = TextEditingController();
+
   handleTakePhoto() async {
     Navigator.pop(context);
     PickedFile? file = await ImagePicker.platform
@@ -44,63 +31,6 @@ class _UploadState extends State<Upload> {
         .pickImage(source: ImageSource.gallery, maxHeight: 675, maxWidth: 960);
     setState(() {
       this.file = file;
-    });
-  }
-
-  clearImage() {
-    setState(() {
-      file = null;
-    });
-  }
-
-  Future<String> uploadImage(imagefile) async {
-    UploadTask uploadTask =
-        storageRef.child('post_${postId}.jpg').putFile(imagefile);
-
-    String downloadUrl = await (await uploadTask).ref.getDownloadURL();
-    return downloadUrl;
-  }
-
-  compressImage() async {
-    final tempDir = await getTemporaryDirectory();
-    final path = tempDir.path;
-    Im.Image? imageFile = Im.decodeImage(await file!.readAsBytes());
-    final compressedImageFile = File('$path/img_$postId.jpg')
-      ..writeAsBytesSync(Im.encodeJpg(imageFile!, quality: 85));
-    setState(() {
-      file = compressedImageFile as PickedFile?;
-    });
-  }
-
-  createPosts({mediaUrl, location, caption}) {
-    posts.doc(widget.currentUser!.id).collection('userPosts').doc(postId).set({
-      'postId': postId,
-      'ownerId': widget.currentUser!.id,
-      'username': widget.currentUser!.username,
-      'mediaUrl': mediaUrl,
-      'caption': caption,
-      'location': location,
-      'likes': {},
-      'timestamp': timestamp,
-    });
-  }
-
-  handleSubmit() async {
-    setState(() {
-      isUploading = true;
-    });
-    await compressImage();
-    String mediaUrl = await uploadImage(file);
-    createPosts(
-        mediaUrl: mediaUrl,
-        location: locationController.text,
-        caption: captionController.text);
-    captionController.clear();
-    locationController.clear();
-    setState(() {
-      file = null;
-      isUploading = false;
-      postId = Uuid().v4();
     });
   }
 
@@ -139,25 +69,29 @@ class _UploadState extends State<Upload> {
             height: 260.0,
           ),
           Padding(
-            padding: EdgeInsets.only(top: 20.0),
-            child: ElevatedButton(
-              style: ButtonStyle(
-                  shape: MaterialStateProperty.all(RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                      side: BorderSide(color: Colors.deepOrange)))),
-              onPressed: () => selectImage(context),
-              child: Text(
-                'Upload Image',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 22.0,
-                ),
-              ),
-            ),
-          )
+              padding: EdgeInsets.only(top: 20.0),
+              child: ElevatedButton(
+                  style: ButtonStyle(
+                      shape: MaterialStateProperty.all(RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                          side: BorderSide(color: Colors.deepOrange)))),
+                  onPressed: () => selectImage(context),
+                  child: Text(
+                    'Upload Image',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 22.0,
+                    ),
+                  )))
         ],
       ),
     );
+  }
+
+  clearImage() {
+    setState(() {
+      file = null;
+    });
   }
 
   Scaffold buildUploadForm() {
@@ -177,7 +111,7 @@ class _UploadState extends State<Upload> {
         ),
         actions: [
           TextButton(
-            onPressed: isUploading ? null : handleSubmit,
+            onPressed: () => print('post'),
             child: Text(
               'Post',
               style: TextStyle(color: Colors.blueAccent, fontSize: 20.0),
@@ -187,8 +121,7 @@ class _UploadState extends State<Upload> {
       ),
       body: ListView(
         children: [
-          isUploading ? linearProgress() : Text(''),
-          SizedBox(
+          Container(
             height: 220.0,
             width: MediaQuery.of(context).size.width * 0.8,
             child: Center(
@@ -215,7 +148,6 @@ class _UploadState extends State<Upload> {
             title: Container(
               width: 250.0,
               child: TextField(
-                controller: captionController,
                 decoration: InputDecoration(
                   hintText: 'write a caption...',
                   border: InputBorder.none,
@@ -233,7 +165,6 @@ class _UploadState extends State<Upload> {
             title: Container(
               width: 250.0,
               child: TextField(
-                controller: locationController,
                 decoration: InputDecoration(
                   hintText: 'enter a location...',
                   border: InputBorder.none,
@@ -243,7 +174,7 @@ class _UploadState extends State<Upload> {
           ),
           Container(
             width: 200.0,
-            height: 100.0,
+             height: 100.0,
             alignment: Alignment.center,
             child: ElevatedButton.icon(
               onPressed: () => print('get users location'),

@@ -4,7 +4,6 @@ import 'package:familyshare/widgets/progress.dart';
 import 'package:flutter/material.dart';
 
 final db = FirebaseFirestore.instance.collection('users');
-final posts = FirebaseFirestore.instance.collection('posts');
 
 class Timeline extends StatefulWidget {
   @override
