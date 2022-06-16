@@ -90,7 +90,9 @@ class _HomeState extends State<Home> {
         currentIndex: pageIndex,
         onTap: onPageTap,
         activeColor: Theme.of(context).primaryColor,
-        iconSize: 30,
+        iconSize: 35,
+       // backgroundColor: Theme.of(context).secondaryHeaderColor,
+        
         items: const [
           BottomNavigationBarItem(
               icon: Icon(Icons.whatshot), label: 'whatshot'),
