@@ -14,35 +14,57 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
-    googleSignIn.onCurrentUserChanged.listen((event) {
-      if (event != null) {
-        print('user:$event');
-        setState(() {
-          isAuth = true;
-        });
-      } else {
-        setState(() {
-          isAuth = false;
-        });
-      }
+    googleSignIn.onCurrentUserChanged.listen((account) {
+      handleSignIn(account);
+    }, onError: (err) {
+     // print(err);
     });
+    googleSignIn.signInSilently(suppressErrors: false).then((account) {
+      handleSignIn(account);
+    }).catchError((err) {
+     //  print(err);
+    });
+  }
+
+  handleSignIn(account) {
+    if (account != null) {
+      print('user:$account');
+      setState(
+        () {
+          isAuth = true;
+        },
+      );
+    } else {
+      setState(
+        () {
+          isAuth = false;
+        },
+      );
+    }
   }
 
   login() {
     googleSignIn.signIn();
   }
 
-  Widget buildAuthScreen() {
-    return Text('auth');
+  logout() {
+    googleSignIn.signOut();
   }
 
-  Widget buildUnAuthScreen() {
+  Widget buildAuthScreen() {
+    return ElevatedButton(
+      onPressed: logout,
+      child: Text('logout',style: TextStyle(fontSize: 26),),
+    );
+  }
+
+  Scaffold buildUnAuthScreen() {
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(colors: [
+            Theme.of(context).secondaryHeaderColor,
             Theme.of(context).primaryColor,
-            Theme.of(context).secondaryHeaderColor
           ], begin: Alignment.topRight, end: Alignment.bottomLeft),
         ),
         alignment: Alignment.center,
@@ -56,7 +78,7 @@ class _HomeState extends State<Home> {
                   fontFamily: 'Roboto', fontSize: 50.0, color: Colors.white),
             ),
             GestureDetector(
-              onTap:login,
+              onTap: login,
               child: Container(
                 width: 50.0,
                 height: 50.0,
