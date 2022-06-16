@@ -15,6 +15,6 @@ class _SearchState extends State<Search> {
 class UserResult extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Text("User Result");
+    return Text('User Result');
   }
 }

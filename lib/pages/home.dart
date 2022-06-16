@@ -16,7 +16,7 @@ class _HomeState extends State<Home> {
     super.initState();
     googleSignIn.onCurrentUserChanged.listen((event) {
       if (event != null) {
-        print('user:${event}');
+        print('user:$event');
         setState(() {
           isAuth = true;
         });
@@ -53,7 +53,7 @@ class _HomeState extends State<Home> {
             Text(
               'FamilyShare',
               style: TextStyle(
-                  fontFamily: "Roboto", fontSize: 50.0, color: Colors.white),
+                  fontFamily: 'Roboto', fontSize: 50.0, color: Colors.white),
             ),
             GestureDetector(
               onTap:login,

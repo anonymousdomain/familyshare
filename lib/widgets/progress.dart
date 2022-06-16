@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 circularProgress() {
-  return Text("circular progress");
+  return Text('circular progress');
 }
 
 linearProgress() {
-  return Text("linear progress");
+  return Text('linear progress');
 }

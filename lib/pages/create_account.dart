@@ -8,6 +8,6 @@ class CreateAccount extends StatefulWidget {
 class _CreateAccountState extends State<CreateAccount> {
   @override
   Widget build(BuildContext parentContext) {
-    return Text("Create Account");
+    return Text('Create Account');
   }
 }
