@@ -1,3 +1,9 @@
+import 'package:familyshare/pages/activity_feed.dart';
+import 'package:familyshare/pages/profile.dart';
+import 'package:familyshare/pages/search.dart';
+import 'package:familyshare/pages/timeline.dart';
+import 'package:familyshare/pages/upload.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
@@ -11,19 +17,34 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   bool isAuth = false;
 
+  late PageController pageController;
+  late int pageIndex=0;
   @override
   void initState() {
     super.initState();
+    pageController = PageController(initialPage:2);
     googleSignIn.onCurrentUserChanged.listen((account) {
       handleSignIn(account);
     }, onError: (err) {
-     // print(err);
+      // print(err);
     });
     googleSignIn.signInSilently(suppressErrors: false).then((account) {
       handleSignIn(account);
     }).catchError((err) {
-     //  print(err);
+      // print(err);
     });
+  }
+
+  onPageChanged(int pageIndex) {
+    setState(() {
+      this.pageIndex = pageIndex;
+    });
+  }
+
+  onPageTap(int pageIndex) {
+    pageController.jumpToPage(
+      pageIndex,
+    );
   }
 
   handleSignIn(account) {
@@ -51,11 +72,44 @@ class _HomeState extends State<Home> {
     googleSignIn.signOut();
   }
 
-  Widget buildAuthScreen() {
-    return ElevatedButton(
-      onPressed: logout,
-      child: Text('logout',style: TextStyle(fontSize: 26),),
+  Scaffold buildAuthScreen() {
+    return Scaffold(
+      body: PageView(
+        controller: pageController,
+        onPageChanged: onPageChanged,
+        physics: NeverScrollableScrollPhysics(),
+        children: [
+          Timeline(),
+          ActivityFeed(),
+          Upload(),
+          Search(),
+          Profile(),
+        ],
+      ),
+      bottomNavigationBar: CupertinoTabBar(
+        currentIndex: pageIndex,
+        onTap: onPageTap,
+        activeColor: Theme.of(context).primaryColor,
+        iconSize: 30,
+        items: const [
+          BottomNavigationBarItem(
+              icon: Icon(Icons.whatshot), label: 'whatshot'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.notifications_active), label: 'notification'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.photo_camera), label: 'upload'),
+          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'search'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.account_circle), label: 'profile'),
+        ],
+      ),
     );
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    pageController.dispose();
   }
 
   Scaffold buildUnAuthScreen() {
