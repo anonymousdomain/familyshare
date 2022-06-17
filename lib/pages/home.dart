@@ -1,13 +1,15 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:familyshare/pages/activity_feed.dart';
+import 'package:familyshare/pages/create_account.dart';
 import 'package:familyshare/pages/profile.dart';
 import 'package:familyshare/pages/search.dart';
-import 'package:familyshare/pages/timeline.dart';
 import 'package:familyshare/pages/upload.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 final googleSignIn = GoogleSignIn();
+final usersDoc = FirebaseFirestore.instance.collection('users');
 
 class Home extends StatefulWidget {
   @override
@@ -16,13 +18,13 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   bool isAuth = false;
-
+  Timestamp timestamp = Timestamp.now();
   late PageController pageController;
-  late int pageIndex=0;
+  int pageIndex = 0;
   @override
   void initState() {
     super.initState();
-    pageController = PageController(initialPage:2);
+    pageController = PageController(initialPage: 0);
     googleSignIn.onCurrentUserChanged.listen((account) {
       handleSignIn(account);
     }, onError: (err) {
@@ -42,16 +44,13 @@ class _HomeState extends State<Home> {
   }
 
   onPageTap(int pageIndex) {
-    pageController.animateToPage(
-      pageIndex,
-      duration: Duration(milliseconds: 300),
-      curve: Curves.linearToEaseOut
-    );
+    pageController.animateToPage(pageIndex,
+        duration: Duration(milliseconds: 300), curve: Curves.linearToEaseOut);
   }
 
   handleSignIn(account) {
     if (account != null) {
-      print('user:$account');
+      createUser();
       setState(
         () {
           isAuth = true;
@@ -74,6 +73,30 @@ class _HomeState extends State<Home> {
     googleSignIn.signOut();
   }
 
+  createUser() async {
+    final GoogleSignInAccount? user = googleSignIn.currentUser;
+    final DocumentSnapshot doc = await usersDoc.doc(user?.id).get();
+    if (!doc.exists) {
+      if (!mounted) return;
+
+      final username = await Navigator.push(
+          context, MaterialPageRoute(builder: (context) => CreateAccount()));
+      usersDoc.doc(user?.id).set({
+        'id': user?.id,
+        'username': username,
+        'photoUrl': user?.photoUrl,
+        'email': user?.email,
+        'displayName': user?.displayName,
+        'bio': '',
+        'timestamp': timestamp,
+      });
+    }
+  }
+
+  ElevatedButton logoutButton() {
+    return ElevatedButton(onPressed: logout, child: Text('Logout'));
+  }
+
   Scaffold buildAuthScreen() {
     return Scaffold(
       body: PageView(
@@ -81,7 +104,8 @@ class _HomeState extends State<Home> {
         onPageChanged: onPageChanged,
         physics: NeverScrollableScrollPhysics(),
         children: [
-          Timeline(),
+          // Timeline(),
+          logoutButton(),
           ActivityFeed(),
           Upload(),
           Search(),
@@ -93,8 +117,7 @@ class _HomeState extends State<Home> {
         onTap: onPageTap,
         activeColor: Theme.of(context).primaryColor,
         iconSize: 35,
-       // backgroundColor: Theme.of(context).secondaryHeaderColor,
-        
+        backgroundColor: Theme.of(context).secondaryHeaderColor,
         items: const [
           BottomNavigationBarItem(
               icon: Icon(Icons.whatshot), label: 'whatshot'),
