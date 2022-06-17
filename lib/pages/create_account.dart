@@ -81,10 +81,11 @@ class _CreateAccountState extends State<CreateAccount> {
                   ),
                   child: Text(
                     'submit',
+                    textAlign: TextAlign.center,
                     style: TextStyle(
                         color: Colors.white,
                         fontSize: 15.0,
-                        fontWeight: FontWeight.bold),
+                        fontWeight: FontWeight.bold,),
                   ),
                 ),
               )

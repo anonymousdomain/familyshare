@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:familyshare/models/user.dart';
 import 'package:familyshare/pages/activity_feed.dart';
@@ -21,7 +23,7 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   bool isAuth = false;
   Timestamp timestamp = Timestamp.now();
-  late PageController pageController;
+  PageController? pageController;
   int pageIndex = 0;
   @override
   void initState() {
@@ -46,7 +48,7 @@ class _HomeState extends State<Home> {
   }
 
   onPageTap(int pageIndex) {
-    pageController.animateToPage(pageIndex,
+    pageController?.animateToPage(pageIndex,
         duration: Duration(milliseconds: 300), curve: Curves.linearToEaseOut);
   }
 
@@ -72,6 +74,9 @@ class _HomeState extends State<Home> {
   }
 
   logout() {
+    setState(() {
+      isAuth = false;
+    });
     googleSignIn.signOut();
   }
 
@@ -79,7 +84,6 @@ class _HomeState extends State<Home> {
     final GoogleSignInAccount? user = googleSignIn.currentUser;
     DocumentSnapshot doc = await usersDoc.doc(user?.id).get();
     if (!doc.exists) {
-      if (!mounted) return;
 
       final username = await Navigator.push(
           context, MaterialPageRoute(builder: (context) => CreateAccount()));
@@ -95,8 +99,7 @@ class _HomeState extends State<Home> {
       doc = await usersDoc.doc(user?.id).get();
     }
     //fetched user data from firestore now we can pass current user to every page
-    currentUser=User.fromDocument(doc);
-      
+    currentUser = User.fromDocument(doc);
   }
 
   ElevatedButton logoutButton() {
@@ -142,7 +145,7 @@ class _HomeState extends State<Home> {
   @override
   void dispose() {
     super.dispose();
-    pageController.dispose();
+    pageController?.dispose();
   }
 
   Scaffold buildUnAuthScreen() {
