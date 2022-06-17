@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:familyshare/widgets/header.dart';
 import 'package:flutter/material.dart';
 
@@ -9,14 +11,28 @@ class CreateAccount extends StatefulWidget {
 class _CreateAccountState extends State<CreateAccount> {
   @override
   Widget build(BuildContext parentContext) {
-     String? username;
+    String? username;
     final formkey = GlobalKey<FormState>();
+    // final scaffoldKey = GlobalKey<ScaffoldState>();
     submit() {
-      formkey.currentState?.save();
-      Navigator.pop(context, username);
+      final form = formkey.currentState;
+      if (form!.validate()) {
+        form.save();
+        SnackBar snackBar = SnackBar(
+          content: Text('welcome $username'),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(snackBar);
+        Timer(
+          Duration(seconds: 2),
+          () {
+            Navigator.pop(context, username);
+          },
+        );
+      }
     }
 
     return Scaffold(
+      // key: scaffoldKey,
       appBar: header(context, appTitle: 'Creat Your Account'),
       body: ListView(
         children: [
@@ -36,6 +52,14 @@ class _CreateAccountState extends State<CreateAccount> {
                 child: Form(
                   key: formkey,
                   child: TextFormField(
+                    validator: (value) {
+                      if (value!.length < 5 || value.isEmpty) {
+                        return 'username is to short';
+                      } else if (value.trim().length > 12) {
+                        return 'username is to long';
+                      }
+                      return null;
+                    },
                     onSaved: (newValue) => username = newValue,
                     decoration: InputDecoration(
                         border: OutlineInputBorder(),
@@ -48,6 +72,8 @@ class _CreateAccountState extends State<CreateAccount> {
               GestureDetector(
                 onTap: submit,
                 child: Container(
+                  height: 50.0,
+                  width: 350.0,
                   padding: EdgeInsets.fromLTRB(15.0, 10.0, 15.0, 10.0),
                   decoration: BoxDecoration(
                     color: Colors.blue,
