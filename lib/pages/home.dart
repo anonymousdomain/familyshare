@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:familyshare/models/user.dart';
 import 'package:familyshare/pages/activity_feed.dart';
 import 'package:familyshare/pages/create_account.dart';
 import 'package:familyshare/pages/profile.dart';
@@ -10,6 +11,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 
 final googleSignIn = GoogleSignIn();
 final usersDoc = FirebaseFirestore.instance.collection('users');
+User? currentUser;
 
 class Home extends StatefulWidget {
   @override
@@ -75,7 +77,7 @@ class _HomeState extends State<Home> {
 
   createUser() async {
     final GoogleSignInAccount? user = googleSignIn.currentUser;
-    final DocumentSnapshot doc = await usersDoc.doc(user?.id).get();
+    DocumentSnapshot doc = await usersDoc.doc(user?.id).get();
     if (!doc.exists) {
       if (!mounted) return;
 
@@ -90,7 +92,11 @@ class _HomeState extends State<Home> {
         'bio': '',
         'timestamp': timestamp,
       });
+      doc = await usersDoc.doc(user?.id).get();
     }
+    //fetched user data from firestore now we can pass current user to every page
+    currentUser=User.fromDocument(doc);
+      
   }
 
   ElevatedButton logoutButton() {
