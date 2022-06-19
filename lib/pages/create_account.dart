@@ -13,7 +13,7 @@ class _CreateAccountState extends State<CreateAccount> {
   Widget build(BuildContext parentContext) {
     String? username;
     final formkey = GlobalKey<FormState>();
-    // final scaffoldKey = GlobalKey<ScaffoldState>();
+     final scaffoldKey = GlobalKey<ScaffoldState>();
     submit() {
       final form = formkey.currentState;
       if (form!.validate()) {
@@ -32,7 +32,7 @@ class _CreateAccountState extends State<CreateAccount> {
     }
 
     return Scaffold(
-      // key: scaffoldKey,
+       key: scaffoldKey,
       appBar: header(context, appTitle: 'Creat Your Account'),
       body: ListView(
         children: [

@@ -77,9 +77,10 @@ class _SearchState extends State<Search> {
           return circularProgress();
         }
         List<UserResult> searchResults = [];
-        snapshot.data!.docs.map((doc) {
+        snapshot.data?.docs.map((doc) {
           User user = User.fromDocument(doc);
-          searchResults.add(UserResult(user));
+          UserResult results = UserResult(user);
+          searchResults.add(results);
         }).toList();
         return ListView(
           children: searchResults,
@@ -99,8 +100,8 @@ class _SearchState extends State<Search> {
 }
 
 class UserResult extends StatelessWidget {
-  final User user;
-  const UserResult(this.user);
+    final User user;
+   const UserResult(this.user);
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -112,15 +113,15 @@ class UserResult extends StatelessWidget {
             child: ListTile(
               leading: CircleAvatar(
                 backgroundColor: Colors.grey,
-                backgroundImage: CachedNetworkImageProvider(user.photoUrl),
+                backgroundImage: CachedNetworkImageProvider(user.photoUrl!),
               ),
               title: Text(
-                user.displayName,
+                user.displayName?? '',
                 style:
                     TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
               ),
               subtitle: Text(
-                user.username,
+                user.username?? '',
                 style: TextStyle(color: Colors.white),
               ),
             ),

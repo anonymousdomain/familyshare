@@ -13,7 +13,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 
 final googleSignIn = GoogleSignIn();
 final usersDoc = FirebaseFirestore.instance.collection('users');
-User? currentUser;
+ late User currentUser;
 
 class Home extends StatefulWidget {
   @override
@@ -87,16 +87,16 @@ class _HomeState extends State<Home> {
 
       final username = await Navigator.push(
           context, MaterialPageRoute(builder: (context) => CreateAccount()));
-      usersDoc.doc(user?.id).set({
-        'id': user?.id,
+      usersDoc.doc(user!.id).set({
+        'id': user.id,
         'username': username,
-        'photoUrl': user?.photoUrl,
-        'email': user?.email,
-        'displayName': user?.displayName,
+        'photoUrl': user.photoUrl,
+        'email': user.email,
+        'displayName': user.displayName,
         'bio': '',
         'timestamp': timestamp,
       });
-      doc = await usersDoc.doc(user?.id).get();
+      doc = await usersDoc.doc(user.id).get();
     }
     //fetched user data from firestore now we can pass current user to every page
     currentUser = User.fromDocument(doc);
