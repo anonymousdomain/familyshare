@@ -62,7 +62,7 @@ class _SearchState extends State<Search> {
           Text(
             'Find User',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 25.0, fontWeight: FontWeight.w500),
+            style: TextStyle(fontSize:40.0, fontWeight: FontWeight.w500),
           )
         ],
       ),
@@ -116,7 +116,7 @@ class UserResult extends StatelessWidget {
                 backgroundImage: CachedNetworkImageProvider(user.photoUrl!),
               ),
               title: Text(
-                user.displayName?? '',
+                user.displayName!,
                 style:
                     TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
               ),
