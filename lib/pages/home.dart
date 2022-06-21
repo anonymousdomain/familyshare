@@ -7,13 +7,16 @@ import 'package:familyshare/pages/create_account.dart';
 import 'package:familyshare/pages/profile.dart';
 import 'package:familyshare/pages/search.dart';
 import 'package:familyshare/pages/upload.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 final googleSignIn = GoogleSignIn();
 final usersDoc = FirebaseFirestore.instance.collection('users');
-  User? currentUser;
+final posts = FirebaseFirestore.instance.collection('posts');
+final storage = FirebaseStorage.instance.ref();
+User? currentUser;
 
 class Home extends StatefulWidget {
   @override
@@ -84,7 +87,6 @@ class _HomeState extends State<Home> {
     final GoogleSignInAccount? user = googleSignIn.currentUser;
     DocumentSnapshot doc = await usersDoc.doc(user?.id).get();
     if (!doc.exists) {
-
       final username = await Navigator.push(
           context, MaterialPageRoute(builder: (context) => CreateAccount()));
       usersDoc.doc(user!.id).set({
