@@ -13,7 +13,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 
 final googleSignIn = GoogleSignIn();
 final usersDoc = FirebaseFirestore.instance.collection('users');
- late User currentUser;
+  User? currentUser;
 
 class Home extends StatefulWidget {
   @override
@@ -116,7 +116,7 @@ class _HomeState extends State<Home> {
           // Timeline(),
           logoutButton(),
           ActivityFeed(),
-          Upload(),
+          Upload(currentUser),
           Search(),
           Profile(),
         ],
