@@ -1,185 +1,75 @@
+// ignore_for_file: unused_import
+
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:familyshare/models/user.dart';
-import 'package:familyshare/pages/timeline.dart';
+import 'package:familyshare/pages/home.dart';
+import 'package:familyshare/widgets/progress.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
+
+import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
-import '../widgets/progress.dart';
 
 class Upload extends StatefulWidget {
-    User? currentUser;
-   Upload({required this.currentUser});
+  final User? currentUser;
+  const Upload(this.currentUser);
   @override
   _UploadState createState() => _UploadState();
 }
 
 class _UploadState extends State<Upload> {
-   PickedFile? file;
+  final ImagePicker _picker = ImagePicker();
+  TextEditingController captionController = TextEditingController();
+  File? file;
   bool isUploading = false;
   String postId = Uuid().v4();
   Timestamp timestamp = Timestamp.now();
-  TextEditingController captionController = TextEditingController();
-  TextEditingController locationController = TextEditingController();
-  handleTakePhoto() async {
+  photoWithCamera() async {
     Navigator.pop(context);
-    // ignore: invalid_use_of_visible_for_testing_member
-    PickedFile? file = await ImagePicker.platform.pickImage(
-      source: ImageSource.camera,
-      maxHeight: 675,
-      maxWidth: 960,
-    );
-
+    XFile? file = await _picker.pickImage(
+        source: ImageSource.camera, maxHeight: 675, maxWidth: 960);
     setState(() {
-      this.file = file!;
+      this.file = File(file!.path);
     });
   }
 
-  handleFromGallery() async {
+  takePhotoFromGallary() async {
     Navigator.pop(context);
-    PickedFile? file = await ImagePicker.platform
-        .pickImage(source: ImageSource.gallery, maxHeight: 675, maxWidth: 960);
+    XFile? file = await _picker.pickImage(source: ImageSource.gallery);
     setState(() {
-      this.file = file!;
+      this.file = File(file!.path);
     });
-  }
-
-  selectImage(parentContext) {
-    return showDialog(
-        context: parentContext,
-        builder: (context) {
-          return SimpleDialog(
-            title: Text('Create Post'),
-            children: [
-              SimpleDialogOption(
-                onPressed: handleTakePhoto,
-                child: Text('take photo from camera'),
-              ),
-              SimpleDialogOption(
-                onPressed: handleFromGallery,
-                child: Text('Upload photo from gallery'),
-              ),
-              SimpleDialogOption(
-                child: Text('cancel'),
-                onPressed: () => Navigator.pop(context),
-              )
-            ],
-          );
-        });
-  }
-
-  Container buildSPlashScreen() {
-    return Container(
-      color: Theme.of(context).secondaryHeaderColor.withOpacity(0.6),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          SvgPicture.asset(
-            'assets/images/upload.svg',
-            height: 260.0,
-          ),
-          Padding(
-            padding: EdgeInsets.only(top: 20.0),
-            child: ElevatedButton(
-              style: ButtonStyle(
-                shape: MaterialStateProperty.all(
-                  RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                    side: BorderSide(color: Colors.deepOrange),
-                  ),
-                ),
-              ),
-              onPressed: () => selectImage(context),
-              child: Text(
-                'Upload Image',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 22.0,
-                ),
-              ),
-            ),
-          )
-        ],
-      ),
-    );
   }
 
   clearImage() {
     setState(() {
-      file = null as PickedFile;
+      file = null;
     });
   }
 
-  // compressImage() async {
-  //   final tempDir = await getTemporaryDirectory();
-  //   final path = tempDir.path;
-  //   Im.Image? imageFile = Im.decodeImage(await file!.readAsBytes());
-  //   final compressedImageFile = File('$path/img_$postId.jpg')
-  //     ..writeAsBytesSync(Im.encodeJpg(imageFile!, quality: 85));
-  //   setState(() {
-  //     file = compressedImageFile as PickedFile?;
-  //   });
-  // }
+  Future<String> uploadImage(imagefile) async {
+    UploadTask uploadTask =
+        storage.child('post_$postId.jpg').putFile(imagefile);
 
-  uploadImage(imagefile) async {
-  final appDocDir = await getApplicationDocumentsDirectory();
-final filePath = "${appDocDir.absolute}/path/to/mountains.jpg";
-final file = File(filePath);
-
-// Create the file metadata
-final metadata = SettableMetadata(contentType: "image/jpeg");
-
-// Create a reference to the Firebase Storage bucket
-final storageRef = FirebaseStorage.instance.ref();
-
-// Upload file and metadata to the path 'images/mountains.jpg'
-final uploadTask = storageRef
-    .child("images/path/to/mountains.jpg")
-    .putFile(file, metadata);
-
-// Listen for state changes, errors, and completion of the upload.
-uploadTask.snapshotEvents.listen((TaskSnapshot taskSnapshot) {
-  switch (taskSnapshot.state) {
-    case TaskState.running:
-      final progress =
-          100.0 * (taskSnapshot.bytesTransferred / taskSnapshot.totalBytes);
-      print("Upload is $progress% complete.");
-      break;
-    case TaskState.paused:
-      print("Upload is paused.");
-      break;
-    case TaskState.canceled:
-      print("Upload was canceled");
-      break;
-    case TaskState.error:
-      // Handle unsuccessful uploads
-      break;
-    case TaskState.success:
-      // Handle successful uploads on complete
-      // ...
-      break;
-  }
-});
+    String downloadUrl = await (await uploadTask).ref.getDownloadURL();
+    return downloadUrl;
   }
 
-  createPosts(
-      {required String mediaUrl,
-      required String location,
-      required String caption}) {
-    posts.doc(widget.currentUser!.id).collection('userPosts').doc(postId).set({
+  createPOsts({mediaUrl, desc}) {
+    posts.doc(widget.currentUser?.id).collection('userPOsts').doc(postId).set({
       'postId': postId,
-      'ownerId': widget.currentUser!.id,
-      'username': widget.currentUser!.username,
+      'ownerId': widget.currentUser?.id,
+      'username': widget.currentUser?.username,
       'mediaUrl': mediaUrl,
-      'caption': caption,
-      'location': location,
+      'desc': desc,
+      'timeStamp': timestamp,
       'likes': {},
-      'timestamp': timestamp,
     });
   }
 
@@ -188,18 +78,81 @@ uploadTask.snapshotEvents.listen((TaskSnapshot taskSnapshot) {
       isUploading = true;
     });
     // await compressImage();
-     await uploadImage(file);
-    createPosts(
-        mediaUrl: '',
-        location: locationController.text,
-        caption: captionController.text);
-    captionController.clear();
-    locationController.clear();
+    String mediaUrl = await uploadImage(file);
+    createPOsts(mediaUrl: mediaUrl, desc: captionController.text);
+    captionController.clear;
     setState(() {
-      file = null as PickedFile;
+      file = null;
       isUploading = false;
       postId = Uuid().v4();
     });
+  }
+
+  selectImage(parentContext) {
+    return showDialog(
+        context: parentContext,
+        builder: (context) {
+          return SimpleDialog(
+            title: Text(
+              'Create post',
+              style: TextStyle(fontSize: 25.0, fontWeight: FontWeight.w300),
+            ),
+            titlePadding: EdgeInsets.all(8),
+            children: [
+              SimpleDialogOption(
+                onPressed: photoWithCamera,
+                child: Text('take photo with camera'),
+              ),
+              SimpleDialogOption(
+                onPressed: takePhotoFromGallary,
+                child: Text('take photo from gallary'),
+              ),
+              SimpleDialogOption(
+                child: Text('Cancel'),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ],
+          );
+        });
+  }
+
+  Container buildSplashScreen() {
+    final Orientation orientation = MediaQuery.of(context).orientation;
+    return Container(
+      color: Theme.of(context).secondaryHeaderColor.withOpacity(0.6),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SvgPicture.asset(
+            'assets/images/upload.svg',
+            height: orientation == Orientation.portrait ? 260.0 : 200,
+            // fit: BoxFit.cover,
+          ),
+          Padding(
+            padding: EdgeInsets.only(top: 20.0),
+            child: ElevatedButton(
+              onPressed: () => selectImage(context),
+              style: ButtonStyle(
+                padding: MaterialStateProperty.all(EdgeInsets.all(8.0)),
+                foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
+                backgroundColor:
+                    MaterialStateProperty.all<Color>(Colors.deepOrange),
+                shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                  RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                    side: BorderSide(color: Colors.orange),
+                  ),
+                ),
+              ),
+              child: Text(
+                'Upload Image',
+                style: TextStyle(color: Colors.white, fontSize: 25.0),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Scaffold buildUploadForm() {
@@ -214,7 +167,7 @@ uploadTask.snapshotEvents.listen((TaskSnapshot taskSnapshot) {
           ),
         ),
         title: Text(
-          'caption a post',
+          'Caption a post',
           style: TextStyle(color: Colors.black),
         ),
         actions: [
@@ -222,29 +175,29 @@ uploadTask.snapshotEvents.listen((TaskSnapshot taskSnapshot) {
             onPressed: isUploading ? null : () => handleSubmit(),
             child: Text(
               'Post',
-              style: TextStyle(color: Colors.blueAccent, fontSize: 20.0),
+              style: TextStyle(
+                  color: Colors.blueAccent,
+                  fontSize: 20.0,
+                  fontWeight: FontWeight.bold),
             ),
-          ),
+          )
         ],
       ),
       body: ListView(
         children: [
           isUploading ? linearProgress() : Text(''),
-          Container(
+          SizedBox(
             height: 220.0,
             width: MediaQuery.of(context).size.width * 0.8,
             child: Center(
               child: AspectRatio(
                 aspectRatio: 16 / 9,
                 child: Container(
-                    decoration: BoxDecoration(
-                  image: DecorationImage(
-                    fit: BoxFit.cover,
-                    image: FileImage(
-                      File(file!.path),
-                    ),
-                  ),
-                )),
+                  decoration: BoxDecoration(
+                      image: DecorationImage(
+                          image: FileImage(File(file!.path)),
+                          fit: BoxFit.cover)),
+                ),
               ),
             ),
           ),
@@ -253,59 +206,15 @@ uploadTask.snapshotEvents.listen((TaskSnapshot taskSnapshot) {
           ),
           ListTile(
             leading: CircleAvatar(
-              backgroundImage:
-                  CachedNetworkImageProvider(widget.currentUser!.photoUrl),
+              backgroundImage: CachedNetworkImageProvider(
+                  widget.currentUser?.photoUrl ?? ''),
             ),
-            title: Container(
+            title: SizedBox(
               width: 250.0,
               child: TextField(
                 controller: captionController,
                 decoration: InputDecoration(
-                  hintText: 'write a caption...',
-                  border: InputBorder.none,
-                ),
-              ),
-            ),
-          ),
-          Divider(),
-          ListTile(
-            leading: Icon(
-              Icons.pin_drop,
-              color: Colors.orange,
-              size: 35.0,
-            ),
-            title: Container(
-              width: 250.0,
-              child: TextField(
-                controller: locationController,
-                decoration: InputDecoration(
-                  hintText: 'enter a location...',
-                  border: InputBorder.none,
-                ),
-              ),
-            ),
-          ),
-          Container(
-            width: 200.0,
-            height: 100.0,
-            alignment: Alignment.center,
-            child: ElevatedButton.icon(
-              onPressed: () => print('get users location'),
-              icon: Icon(
-                Icons.my_location,
-                color: Colors.white,
-              ),
-              label: Text(
-                'Use a current Location',
-                style: TextStyle(color: Colors.white),
-              ),
-              style: ButtonStyle(
-                shape: MaterialStateProperty.all(
-                  RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30.0),
-                    side: BorderSide(color: Colors.blue),
-                  ),
-                ),
+                    hintText: 'write a Caption', border: InputBorder.none),
               ),
             ),
           ),
@@ -316,6 +225,6 @@ uploadTask.snapshotEvents.listen((TaskSnapshot taskSnapshot) {
 
   @override
   Widget build(BuildContext context) {
-    return file == null ? buildSPlashScreen() : buildUploadForm();
+    return file == null ? buildSplashScreen() : buildUploadForm();
   }
 }

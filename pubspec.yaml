@@ -39,13 +39,13 @@ dependencies:
   cloud_firestore: ^3.1.14
   provider: ^6.0.2
   google_sign_in: ^5.3.1
-  flutter_svg: ^1.0.3
+  flutter_svg: ^1.1.0
   cached_network_image: ^3.2.1
   image_picker: ^0.8.5+3
+  path_provider: ^2.0.11
   image: ^3.2.0
-  path_provider: ^2.0.10
   uuid: ^3.0.6
-  firebase_storage: ^10.2.17
+  firebase_storage: ^10.2.18
 
 dev_dependencies:
   flutter_test:
@@ -75,9 +75,9 @@ flutter:
   #   - images/a_dot_ham.jpeg
       - assets/images/googleIcon.png
       - assets/images/upload.svg
-      # - assets/images/activity_feed.svg
+      #- assets/images/activity_feed.svg
       - assets/images/search.svg
-      # - assets/images/no_content.svg
+      #- assets/images/no_content.svg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

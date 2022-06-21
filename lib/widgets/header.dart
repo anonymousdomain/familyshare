@@ -1,18 +1,11 @@
 import 'package:flutter/material.dart';
 
-AppBar header(context,{bool isAppTitle=false,String titleText='',removeBackButton=false}) {
+AppBar header(context,{bool isAppTitle=false, appTitle }) {
   return AppBar(
-    automaticallyImplyLeading: removeBackButton?false:true,
     title: Text(
-      isAppTitle?"FamilyShare":titleText,
-      style: TextStyle(
-          color: Colors.white,
-          fontFamily: "Roboto",
-          fontSize: isAppTitle? 50.0:22.0,
-          fontWeight: FontWeight.w200,
-          fontStyle: FontStyle.italic),
-    ),
-    centerTitle: true,
-    backgroundColor: Theme.of(context).secondaryHeaderColor,
+      isAppTitle?'FamilyShare':appTitle,
+      style: TextStyle(color: Colors.white,fontSize:35,fontWeight: FontWeight.w500),),
+      centerTitle: true,
+      backgroundColor: Theme.of(context).secondaryHeaderColor,
   );
 }

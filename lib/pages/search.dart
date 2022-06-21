@@ -1,29 +1,30 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:familyshare/models/user.dart';
-import 'package:familyshare/pages/timeline.dart';
+import 'package:familyshare/pages/home.dart';
 import 'package:familyshare/widgets/progress.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+
 class Search extends StatefulWidget {
   @override
   _SearchState createState() => _SearchState();
 }
 
 class _SearchState extends State<Search> {
-  Future<QuerySnapshot>? usersSearchResult;
+  Future<QuerySnapshot<Object?>>? userSearch;
   TextEditingController searchController = TextEditingController();
+  handleSearch(String value) {
+    Future<QuerySnapshot<Object?>>? users =
+        usersDoc.where('displayName', isGreaterThanOrEqualTo: value).get();
+
+    setState(() {
+      userSearch = users;
+    });
+  }
 
   clearSearch() {
     searchController.clear();
-  }
-
-  handleSearch(String query) {
-    Future<QuerySnapshot> usersSearch =
-        db.where('displayName', isGreaterThanOrEqualTo: query).get();
-    setState(() {
-      usersSearchResult = usersSearch;
-    });
   }
 
   AppBar buildSearchField() {
@@ -32,15 +33,15 @@ class _SearchState extends State<Search> {
       title: TextFormField(
         controller: searchController,
         decoration: InputDecoration(
-          hintText: 'search for a user...',
+          hintText: 'Search for Users',
           filled: true,
           prefixIcon: Icon(
             Icons.account_box,
             size: 30.0,
           ),
           suffixIcon: IconButton(
-            onPressed: clearSearch,
             icon: Icon(Icons.clear),
+            onPressed: clearSearch,
           ),
         ),
         onFieldSubmitted: handleSearch,
@@ -50,40 +51,36 @@ class _SearchState extends State<Search> {
 
   buildNoContent() {
     final Orientation orientation = MediaQuery.of(context).orientation;
-    return Container(
-      child: Center(
-        child: ListView(
-          shrinkWrap: true,
-          children: [
-            SvgPicture.asset('assets/images/search.svg',
-                height: orientation == Orientation.portrait ? 300 : 200),
-            Text(
-              'Find User',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 50.0,
-                  fontWeight: FontWeight.w600,
-                  fontStyle: FontStyle.italic),
-            )
-          ],
-        ),
+    return Center(
+      child: ListView(
+        shrinkWrap: true,
+        children: [
+          SvgPicture.asset(
+            'assets/images/search.svg',
+            height: orientation == Orientation.portrait ? 300 : 200,
+          ),
+          Text(
+            'Find User',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize:40.0, fontWeight: FontWeight.w500),
+          )
+        ],
       ),
     );
   }
 
-  buildSearchResults() {
-    return FutureBuilder<QuerySnapshot>(
-      future: usersSearchResult,
+  buildSearchResult() {
+    return FutureBuilder<QuerySnapshot<Object?>>(
+      future: userSearch,
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return circularProgress();
         }
         List<UserResult> searchResults = [];
-        snapshot.data!.docs.map((doc) {
+        snapshot.data?.docs.map((doc) {
           User user = User.fromDocument(doc);
-          UserResult searchResult = UserResult(user);
-          searchResults.add(searchResult);
+          UserResult results = UserResult(user);
+          searchResults.add(results);
         }).toList();
         return ListView(
           children: searchResults,
@@ -97,15 +94,14 @@ class _SearchState extends State<Search> {
     return Scaffold(
       backgroundColor: Theme.of(context).primaryColor.withOpacity(0.8),
       appBar: buildSearchField(),
-      // ignore: unnecessary_null_comparison
-      body: usersSearchResult == null ? buildNoContent() : buildSearchResults(),
+      body: userSearch == null ? buildNoContent() : buildSearchResult(),
     );
   }
 }
 
 class UserResult extends StatelessWidget {
-  final User user;
-  const UserResult(this.user);
+    final User user;
+   const UserResult(this.user);
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -113,19 +109,19 @@ class UserResult extends StatelessWidget {
       child: Column(
         children: [
           GestureDetector(
-            onTap: () => print('tapped'),
+            onTap: () => print('hello'),
             child: ListTile(
               leading: CircleAvatar(
-                // backgroundColor: Colors.grey,
-                backgroundImage: CachedNetworkImageProvider(user.photoUrl),
+                backgroundColor: Colors.grey,
+                backgroundImage: CachedNetworkImageProvider(user.photoUrl!),
               ),
               title: Text(
-                user.displayName,
+                user.displayName!,
                 style:
                     TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
               ),
               subtitle: Text(
-                user.username,
+                user.username?? '',
                 style: TextStyle(color: Colors.white),
               ),
             ),
@@ -133,7 +129,7 @@ class UserResult extends StatelessWidget {
           Divider(
             height: 2.0,
             color: Colors.white54,
-          )
+          ),
         ],
       ),
     );
