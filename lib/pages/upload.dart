@@ -61,8 +61,8 @@ class _UploadState extends State<Upload> {
     return downloadUrl;
   }
 
-  createPOsts({mediaUrl, desc}) {
-    posts.doc(widget.currentUser?.id).collection('userPOsts').doc(postId).set({
+  createPosts({mediaUrl, desc}) {
+    posts.doc(widget.currentUser?.id).collection('userPosts').doc(postId).set({
       'postId': postId,
       'ownerId': widget.currentUser?.id,
       'username': widget.currentUser?.username,
@@ -79,7 +79,7 @@ class _UploadState extends State<Upload> {
     });
     // await compressImage();
     String mediaUrl = await uploadImage(file);
-    createPOsts(mediaUrl: mediaUrl, desc: captionController.text);
+    createPosts(mediaUrl: mediaUrl, desc: captionController.text);
     captionController.clear;
     setState(() {
       file = null;
