@@ -13,10 +13,13 @@ class EditProfile extends StatefulWidget {
 }
 
 class _EditProfileState extends State<EditProfile> {
-  bool isLoading = false;
   User? user;
+  bool isLoading = false;
+  bool _isNameValid = true;
+  bool _isBioValid = true;
   TextEditingController displayNameController = TextEditingController();
   TextEditingController bioController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -29,11 +32,40 @@ class _EditProfileState extends State<EditProfile> {
     });
     DocumentSnapshot doc = await usersDoc.doc(widget.currentUserId).get();
     user = User.fromDocument(doc);
-    displayNameController.text = user?.displayName??'';
-    bioController.text = user?.bio??'';
+    displayNameController.text = user?.displayName ?? '';
+    bioController.text = user?.bio ?? '';
     setState(() {
       isLoading = false;
     });
+  }
+
+  logOut() async {
+    await googleSignIn.signOut();
+    if (!mounted) return;
+    Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
+  }
+
+  updateProfile() {
+    setState(() {
+      displayNameController.text.trim().length < 5 ||
+              displayNameController.text.isEmpty
+          ? _isNameValid = false
+          : _isNameValid = true;
+      bioController.text.trim().length > 100
+          ? _isBioValid = false
+          : _isBioValid = true;
+    });
+    if (_isNameValid && _isBioValid) {
+      usersDoc.doc(widget.currentUserId).update({
+        'displayName': displayNameController.text,
+        'bio': bioController.text
+      });
+    }
+    SnackBar snackBar = SnackBar(
+      content: Text('Your profile is updated'),
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
   buildDisplayNameField() {
@@ -50,8 +82,8 @@ class _EditProfileState extends State<EditProfile> {
         TextField(
           controller: displayNameController,
           decoration: InputDecoration(
-            hintText: 'update Display name',
-          ),
+              hintText: 'update Display name',
+              errorText: _isNameValid ? null : 'display name is to short'),
         ),
       ],
     );
@@ -71,8 +103,8 @@ class _EditProfileState extends State<EditProfile> {
         TextField(
           controller: bioController,
           decoration: InputDecoration(
-            hintText: 'update Your Bio',
-          ),
+              hintText: 'update Your Bio',
+              errorText: _isBioValid ? null : 'your bio is to long'),
         ),
       ],
     );
@@ -109,7 +141,7 @@ class _EditProfileState extends State<EditProfile> {
                       child: CircleAvatar(
                         radius: 50.0,
                         backgroundImage:
-                            CachedNetworkImageProvider(user?.photoUrl??''),
+                            CachedNetworkImageProvider(user?.photoUrl ?? ''),
                       ),
                     ),
                     Padding(
@@ -122,12 +154,12 @@ class _EditProfileState extends State<EditProfile> {
                       ),
                     ),
                     ElevatedButton(
-                      onPressed: () {},
+                      onPressed: updateProfile,
                       child: Text(
                         'update Profile',
                         style: TextStyle(
-                          backgroundColor:  Theme.of(context).primaryColor,
-                            color:Colors.white,
+                            backgroundColor: Theme.of(context).primaryColor,
+                            color: Colors.white,
                             fontSize: 20.0,
                             fontWeight: FontWeight.bold),
                       ),
@@ -135,7 +167,7 @@ class _EditProfileState extends State<EditProfile> {
                     Padding(
                       padding: EdgeInsets.all(16.0),
                       child: TextButton.icon(
-                        onPressed: () {},
+                        onPressed: logOut,
                         icon: Icon(
                           Icons.cancel,
                           color: Colors.red,
