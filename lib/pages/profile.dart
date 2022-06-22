@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:familyshare/models/user.dart';
+import 'package:familyshare/pages/edit_profile.dart';
 import 'package:familyshare/pages/home.dart';
 import 'package:familyshare/widgets/header.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +14,7 @@ class Profile extends StatefulWidget {
 }
 
 class _ProfileState extends State<Profile> {
+  final String? currentUserId = currentUser?.id;
   buildCountColumn(String lable, int count) {
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -36,8 +38,47 @@ class _ProfileState extends State<Profile> {
     );
   }
 
+  editProfile() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditProfile(
+          currentUserId: currentUserId,
+        ),
+      ),
+    );
+  }
+
+  TextButton buildButton(
+      {required String label, required Function() function}) {
+    return TextButton(
+      onPressed: function,
+      style: ButtonStyle(
+          padding:
+              MaterialStateProperty.all<EdgeInsets>(EdgeInsets.only(top: 2.0)),
+          foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
+          backgroundColor: MaterialStateProperty.all<Color>(Colors.blue),
+          shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+              RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(5.0),
+                  side: BorderSide(color: Colors.blue)))),
+      child: Container(
+        width: 240.0,
+        height: 27.0,
+        alignment: Alignment.center,
+        child: Text(
+          label,
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+      ),
+    );
+  }
+
   buildProfileButton() {
-    return Text('buildProfileButton');
+    bool isProfileOwner = currentUserId == widget.profileId;
+    if (isProfileOwner) {
+      return buildButton(label: 'Edit Your Profile', function: editProfile);
+    }
   }
 
   buildProfileHeader() {
@@ -93,15 +134,17 @@ class _ProfileState extends State<Profile> {
               ),
               Container(
                 alignment: Alignment.centerLeft,
-                padding: EdgeInsets.only(top:4.0),
+                padding: EdgeInsets.only(top: 4.0),
                 child: Text(
                   user.displayName!,
-                  style: TextStyle(fontWeight: FontWeight.bold,),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
               Container(
                 alignment: Alignment.centerLeft,
-                padding: EdgeInsets.only(top:2.0),
+                padding: EdgeInsets.only(top: 2.0),
                 child: Text(
                   user.bio!,
                 ),
