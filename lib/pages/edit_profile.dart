@@ -17,7 +17,7 @@ class _EditProfileState extends State<EditProfile> {
   bool isLoading = false;
   bool _isNameValid = true;
   bool _isBioValid = true;
-  TextEditingController displayNameController = TextEditingController();
+  TextEditingController userNameController = TextEditingController();
   TextEditingController bioController = TextEditingController();
 
   @override
@@ -32,7 +32,7 @@ class _EditProfileState extends State<EditProfile> {
     });
     DocumentSnapshot doc = await usersDoc.doc(widget.currentUserId).get();
     user = User.fromDocument(doc);
-    displayNameController.text = user?.displayName ?? '';
+    userNameController.text = user?.username ?? '';
     bioController.text = user?.bio ?? '';
     setState(() {
       isLoading = false;
@@ -47,43 +47,42 @@ class _EditProfileState extends State<EditProfile> {
 
   updateProfile() {
     setState(() {
-      displayNameController.text.trim().length < 5 ||
-              displayNameController.text.isEmpty
+      userNameController.text.trim().length < 5 ||
+              userNameController.text.isEmpty
           ? _isNameValid = false
           : _isNameValid = true;
-      bioController.text.trim().length > 100
+      bioController.text.trim().length >50
           ? _isBioValid = false
           : _isBioValid = true;
     });
     if (_isNameValid && _isBioValid) {
       usersDoc.doc(widget.currentUserId).update({
-        'displayName': displayNameController.text,
+        'username': userNameController.text,
         'bio': bioController.text
       });
+      SnackBar snackBar = SnackBar(
+        content: Text('Your profile is updated'),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
     }
-    SnackBar snackBar = SnackBar(
-      content: Text('Your profile is updated'),
-    );
-
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
-  buildDisplayNameField() {
+  buildUserNameField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: EdgeInsets.only(top: 12.0),
           child: Text(
-            'Display Name',
+            'username',
             style: TextStyle(color: Colors.grey),
           ),
         ),
         TextField(
-          controller: displayNameController,
+          controller: userNameController,
           decoration: InputDecoration(
-              hintText: 'update Display name',
-              errorText: _isNameValid ? null : 'display name is to short'),
+              hintText: 'update  username',
+              errorText: _isNameValid ? null : 'username is to short'),
         ),
       ],
     );
@@ -148,7 +147,7 @@ class _EditProfileState extends State<EditProfile> {
                       padding: EdgeInsets.all(16.0),
                       child: Column(
                         children: [
-                          buildDisplayNameField(),
+                          buildUserNameField(),
                           buildBioField(),
                         ],
                       ),
