@@ -4,6 +4,8 @@ import 'package:familyshare/models/user.dart';
 import 'package:familyshare/pages/edit_profile.dart';
 import 'package:familyshare/pages/home.dart';
 import 'package:familyshare/widgets/header.dart';
+import 'package:familyshare/widgets/post.dart';
+import 'package:familyshare/widgets/progress.dart';
 import 'package:flutter/material.dart';
 
 class Profile extends StatefulWidget {
@@ -15,6 +17,32 @@ class Profile extends StatefulWidget {
 
 class _ProfileState extends State<Profile> {
   final String? currentUserId = currentUser?.id;
+  bool isLoading = false;
+  int postCount = 0;
+  List<Post> listPosts = [];
+  @override
+  void initState() {
+    super.initState();
+    getProfilePost();
+  }
+
+  getProfilePost() async {
+    setState(() {
+      isLoading = true;
+    });
+    QuerySnapshot snapshot = await 
+        posts.doc(widget.profileId)
+        .collection('userPosts')
+        .orderBy('timestamp', descending: true)
+        .get();
+
+    setState(() {
+      isLoading = false;
+      postCount = snapshot.docs.length;
+      listPosts = snapshot.docs.map((doc) => Post.fromDocument(doc)).toList();
+    });
+  }
+
   buildCountColumn(String lable, int count) {
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -87,7 +115,7 @@ class _ProfileState extends State<Profile> {
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return Center(
-            child: CircularProgressIndicator(),
+            child: circularProgress(),
           );
         }
         User user = User.fromDocument(snapshot.data!);
@@ -110,7 +138,7 @@ class _ProfileState extends State<Profile> {
                           mainAxisSize: MainAxisSize.max,
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            buildCountColumn('posts', 0),
+                            buildCountColumn('posts',postCount),
                             buildCountColumn('followers', 0),
                             buildCountColumn('following', 0),
                           ],
@@ -128,7 +156,7 @@ class _ProfileState extends State<Profile> {
                 alignment: Alignment.centerLeft,
                 padding: EdgeInsets.only(top: 10.0),
                 child: Text(
-                  user.username!,
+                  user.username.toString(),
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
                 ),
               ),
@@ -156,6 +184,13 @@ class _ProfileState extends State<Profile> {
     );
   }
 
+  buildProfilePost() {
+    if (isLoading) return circularProgress();
+    return Column(
+      children: listPosts,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -163,6 +198,10 @@ class _ProfileState extends State<Profile> {
       body: ListView(
         children: [
           buildProfileHeader(),
+          Divider(
+            height: 0.0,
+          ),
+          buildProfilePost(),
         ],
       ),
     );

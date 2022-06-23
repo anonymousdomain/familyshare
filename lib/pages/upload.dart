@@ -68,7 +68,7 @@ class _UploadState extends State<Upload> {
       'username': widget.currentUser?.username,
       'mediaUrl': mediaUrl,
       'desc': desc,
-      'timeStamp': timestamp,
+      'timestamp': timestamp,
       'likes': {},
     });
   }
