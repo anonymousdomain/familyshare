@@ -77,7 +77,7 @@ flutter:
       - assets/images/upload.svg
       #- assets/images/activity_feed.svg
       - assets/images/search.svg
-      #- assets/images/no_content.svg
+      - assets/images/no_img_content.svg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

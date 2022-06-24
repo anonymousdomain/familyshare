@@ -8,6 +8,7 @@ import 'package:familyshare/widgets/post.dart';
 import 'package:familyshare/widgets/post_tile.dart';
 import 'package:familyshare/widgets/progress.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class Profile extends StatefulWidget {
   final String? profileId;
@@ -189,6 +190,32 @@ class _ProfileState extends State<Profile> {
   buildProfilePost() {
     if (isLoading) {
       return circularProgress();
+    } else if (listPosts.isEmpty) {
+      final Orientation orientation = MediaQuery.of(context).orientation;
+      return Container(
+        color: Colors.white70,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SvgPicture.asset(
+              'assets/images/no_img_content.svg',
+              height: orientation == Orientation.portrait ? 260.0 : 150,
+              fit: BoxFit.cover,
+            ),
+            Padding(
+              padding: EdgeInsets.only(top: 20.0),
+              child: Text(
+                'No Posts',
+                style: TextStyle(
+                    color: Colors.redAccent,
+                    fontSize: 40.0,
+                    fontWeight: FontWeight.bold,
+                    backgroundColor: Colors.white),
+              ),
+            ),
+          ],
+        ),
+      );
     } else if (postOrientation == 'grid') {
       List<GridTile> gridTiles =
           listPosts.map((post) => GridTile(child: PostTile(post))).toList();
@@ -210,7 +237,7 @@ class _ProfileState extends State<Profile> {
 
   setOrientation(String postOrientation) {
     setState(() {
-      postOrientation = postOrientation;
+     this.postOrientation = postOrientation;
     });
   }
 
@@ -222,14 +249,18 @@ class _ProfileState extends State<Profile> {
           onPressed: () => setOrientation('grid'),
           icon: Icon(
             Icons.grid_on,
-            color:postOrientation=='grid'? Theme.of(context).primaryColor:Colors.grey,
+            color: postOrientation == 'grid'
+                ? Theme.of(context).primaryColor
+                : Colors.grey,
           ),
         ),
         IconButton(
           onPressed: () => setOrientation('list'),
           icon: Icon(
             Icons.list,
-            color:postOrientation=='list'? Theme.of(context).primaryColor:Colors.grey,
+            color: postOrientation == 'list'
+                ? Theme.of(context).primaryColor
+                : Colors.grey,
           ),
         )
       ],
