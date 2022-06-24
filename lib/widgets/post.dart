@@ -103,7 +103,7 @@ class _PostState extends State<Post> {
         child: Stack(
           alignment: Alignment.center,
           children: [
-            Image.network(mediaUrl!),
+           CachedNetworkImage(imageUrl: mediaUrl!)
           ],
         ),
       );

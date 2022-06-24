@@ -5,6 +5,7 @@ import 'package:familyshare/pages/edit_profile.dart';
 import 'package:familyshare/pages/home.dart';
 import 'package:familyshare/widgets/header.dart';
 import 'package:familyshare/widgets/post.dart';
+import 'package:familyshare/widgets/post_tile.dart';
 import 'package:familyshare/widgets/progress.dart';
 import 'package:flutter/material.dart';
 
@@ -20,6 +21,7 @@ class _ProfileState extends State<Profile> {
   bool isLoading = false;
   int postCount = 0;
   List<Post> listPosts = [];
+  String postOrientation = 'grid';
   @override
   void initState() {
     super.initState();
@@ -30,8 +32,8 @@ class _ProfileState extends State<Profile> {
     setState(() {
       isLoading = true;
     });
-    QuerySnapshot snapshot = await 
-        posts.doc(widget.profileId)
+    QuerySnapshot snapshot = await posts
+        .doc(widget.profileId)
         .collection('userPosts')
         .orderBy('timestamp', descending: true)
         .get();
@@ -138,7 +140,7 @@ class _ProfileState extends State<Profile> {
                           mainAxisSize: MainAxisSize.max,
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            buildCountColumn('posts',postCount),
+                            buildCountColumn('posts', postCount),
                             buildCountColumn('followers', 0),
                             buildCountColumn('following', 0),
                           ],
@@ -185,9 +187,52 @@ class _ProfileState extends State<Profile> {
   }
 
   buildProfilePost() {
-    if (isLoading) return circularProgress();
-    return Column(
-      children: listPosts,
+    if (isLoading) {
+      return circularProgress();
+    } else if (postOrientation == 'grid') {
+      List<GridTile> gridTiles =
+          listPosts.map((post) => GridTile(child: PostTile(post))).toList();
+      return GridView.count(
+        crossAxisCount: 3,
+        childAspectRatio: 1.0,
+        mainAxisSpacing: 1.5,
+        crossAxisSpacing: 1.5,
+        shrinkWrap: true,
+        physics: NeverScrollableScrollPhysics(),
+        children: gridTiles,
+      );
+    } else if (postOrientation == 'list') {
+      return Column(
+        children: listPosts,
+      );
+    }
+  }
+
+  setOrientation(String postOrientation) {
+    setState(() {
+      postOrientation = postOrientation;
+    });
+  }
+
+  buildTogglePostsOrientation() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        IconButton(
+          onPressed: () => setOrientation('grid'),
+          icon: Icon(
+            Icons.grid_on,
+            color:postOrientation=='grid'? Theme.of(context).primaryColor:Colors.grey,
+          ),
+        ),
+        IconButton(
+          onPressed: () => setOrientation('list'),
+          icon: Icon(
+            Icons.list,
+            color:postOrientation=='list'? Theme.of(context).primaryColor:Colors.grey,
+          ),
+        )
+      ],
     );
   }
 
@@ -198,6 +243,10 @@ class _ProfileState extends State<Profile> {
       body: ListView(
         children: [
           buildProfileHeader(),
+          Divider(
+            height: 0.0,
+          ),
+          buildTogglePostsOrientation(),
           Divider(
             height: 0.0,
           ),
