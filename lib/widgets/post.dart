@@ -48,13 +48,13 @@ class Post extends StatefulWidget {
 
   @override
   _PostState createState() => _PostState(
-        postId: this.postId,
-        ownerId: this.ownerId,
-        username: this.username,
-        desc: this.desc,
-        mediaUrl: this.mediaUrl,
-        likes: this.likes,
-        likeCount: getLikeCount(this.likes),
+        postId: postId,
+        ownerId: ownerId,
+        username: username,
+        desc: desc,
+        mediaUrl: mediaUrl,
+        likes: likes,
+        likeCount: getLikeCount(likes),
       );
 }
 
@@ -80,9 +80,9 @@ class _PostState extends State<Post> {
   });
 
   handleLikePost() {
-    bool _isLiked = likes[currentUserId] == true;
+    bool liked = likes[currentUserId] == true;
 
-    if (_isLiked) {
+    if (liked) {
       posts.doc(ownerId).collection('userPosts').doc(postId).update(
         {'likes.$currentUserId': false},
       );
@@ -92,7 +92,7 @@ class _PostState extends State<Post> {
         isLiked = !isLiked;
         likes[currentUserId] = !likes[currentUserId];
       });
-    } else if (!_isLiked) {
+    } else if (!liked) {
       posts.doc(ownerId).collection('userPosts').doc(postId).update(
         {'likes.$currentUserId': true},
       );
@@ -106,8 +106,8 @@ class _PostState extends State<Post> {
   }
 
   addLikeToActivityFeed() {
-    bool _isNotPostOwner = currentUserId != ownerId;
-    if (_isNotPostOwner) {
+    bool isNotPostOwner = currentUserId != ownerId;
+    if (isNotPostOwner) {
       activityDOc.doc(ownerId).collection('feedItems').doc(postId).set({
         'type': 'like',
         'username': currentUser?.username,
@@ -121,8 +121,8 @@ class _PostState extends State<Post> {
   }
 
   removeLikeFromActivityFeed() {
-    bool _isNotPostOwner = currentUserId != ownerId;
-    if (_isNotPostOwner) {
+    bool isNotPostOwner = currentUserId != ownerId;
+    if (isNotPostOwner) {
       activityDOc
           .doc(ownerId)
           .collection('feedItems')
