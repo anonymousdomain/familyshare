@@ -1,4 +1,3 @@
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:familyshare/models/user.dart';
@@ -8,19 +7,20 @@ import 'package:familyshare/widgets/progress.dart';
 import 'package:flutter/material.dart';
 
 class Post extends StatefulWidget {
-  final String? postId;
-  final String? ownerId;
-  final String? username;
-  final String? desc;
-  final String? mediaUrl;
+  final String postId;
+  final String ownerId;
+  final String username;
+  final String desc;
+  final String mediaUrl;
   final dynamic likes;
-  const Post(
-      {this.postId,
-      this.ownerId,
-      this.username,
-      this.desc,
-      this.mediaUrl,
-      this.likes});
+  const Post({
+    required this.postId,
+    required this.ownerId,
+    required this.username,
+    required this.desc,
+    required this.mediaUrl,
+    this.likes,
+  });
   factory Post.fromDocument(DocumentSnapshot doc) {
     return Post(
       postId: doc.get('postId'),
@@ -28,6 +28,7 @@ class Post extends StatefulWidget {
       username: doc.get('username'),
       desc: doc.get('desc'),
       mediaUrl: doc.get('mediaUrl'),
+      likes: doc.get('likes'),
     );
   }
   int getLikeCount(likes) {
@@ -40,75 +41,104 @@ class Post extends StatefulWidget {
     likes.values.forEach((val) {
       if (val == true) {
         count += 1;
-      } else {
-        count -= 1;
       }
     });
-
     return count;
   }
 
   @override
   _PostState createState() => _PostState(
-        postId: postId,
-        ownerId: ownerId,
-        username: username,
-        desc: desc,
-        mediaUrl: mediaUrl,
-        likes: likes,
-        likeCount: getLikeCount(likes),
+        postId: this.postId,
+        ownerId: this.ownerId,
+        username: this.username,
+        desc: this.desc,
+        mediaUrl: this.mediaUrl,
+        likes: this.likes,
+        likeCount: getLikeCount(this.likes),
       );
 }
 
 class _PostState extends State<Post> {
   final String? currentUserId = currentUser?.id;
-  final String? postId;
-  final String? ownerId;
-  final String? username;
-  final String? desc;
-  final String? mediaUrl;
-  Map? likes;
-  int? likeCount;
-  bool isLiked = false;
-  _PostState(
-      {this.postId,
-      this.ownerId,
-      this.username,
-      this.desc,
-      this.mediaUrl,
-      this.likes,
-      this.likeCount});
+  final Timestamp timestamp = Timestamp.now();
+  final String postId;
+  final String ownerId;
+  final String username;
+  final String desc;
+  final String mediaUrl;
+  int likeCount;
+  Map likes;
+  late bool isLiked;
+  _PostState({
+    required this.postId,
+    required this.ownerId,
+    required this.username,
+    required this.desc,
+    required this.mediaUrl,
+    required this.likes,
+    required this.likeCount,
+  });
 
-  handleLikePost() async {
-    bool liked = await likes?[currentUserId] == true;
-    if (liked) {
-      final update =
-          await posts.doc(ownerId).collection('userPosts').doc(postId).update(
+  handleLikePost() {
+    bool _isLiked = likes[currentUserId] == true;
+
+    if (_isLiked) {
+      posts.doc(ownerId).collection('userPosts').doc(postId).update(
         {'likes.$currentUserId': false},
       );
+      removeLikeFromActivityFeed();
       setState(() {
-        update;
-        likeCount = (likeCount! - 1);
+        likeCount = likeCount - 1;
         isLiked = !isLiked;
-        likes?[currentUserId] = false;
+        likes[currentUserId] = !likes[currentUserId];
       });
-    } else if (!liked) {
-      final update =
-          await posts.doc(ownerId).collection('userPosts').doc(postId).update(
+    } else if (!_isLiked) {
+      posts.doc(ownerId).collection('userPosts').doc(postId).update(
         {'likes.$currentUserId': true},
       );
+      addLikeToActivityFeed();
       setState(() {
-        update;
-        likeCount = (likeCount! + 1);
+        likeCount = likeCount + 1;
         isLiked = !isLiked;
-        likes?[currentUserId] = true;
+        likes[currentUserId] = !likes[currentUserId];
+      });
+    }
+  }
+
+  addLikeToActivityFeed() {
+    bool _isNotPostOwner = currentUserId != ownerId;
+    if (_isNotPostOwner) {
+      activityDOc.doc(ownerId).collection('feedItems').doc(postId).set({
+        'type': 'like',
+        'username': currentUser?.username,
+        'userId': currentUser?.id,
+        'userProfile': currentUser?.photoUrl,
+        'postId': postId,
+        'mediaUrl': mediaUrl,
+        'timestamp': timestamp,
+      });
+    }
+  }
+
+  removeLikeFromActivityFeed() {
+    bool _isNotPostOwner = currentUserId != ownerId;
+    if (_isNotPostOwner) {
+      activityDOc
+          .doc(ownerId)
+          .collection('feedItems')
+          .doc(postId)
+          .get()
+          .then((doc) {
+        if (doc.exists) {
+          doc.reference.delete();
+        }
       });
     }
   }
 
   buildPostHeader() {
     return FutureBuilder<DocumentSnapshot>(
-      future: usersDoc.doc(widget.ownerId).get(),
+      future: usersDoc.doc(ownerId).get(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) return circularProgress();
         User user = User.fromDocument(snapshot.data!);
@@ -137,7 +167,7 @@ class _PostState extends State<Post> {
       onDoubleTap: handleLikePost,
       child: Stack(
         alignment: Alignment.center,
-        children: [CachedNetworkImage(imageUrl: mediaUrl!)],
+        children: [CachedNetworkImage(imageUrl: mediaUrl)],
       ),
     );
   }
@@ -165,12 +195,8 @@ class _PostState extends State<Post> {
             ),
             //comments
             GestureDetector(
-              onTap: ()=>showComments(
-                context,
-                postId:postId!,
-                ownerId:ownerId!,
-                mediaUrl:mediaUrl!
-              ),
+              onTap: () => showComments(context,
+                  postId: postId, ownerId: ownerId, mediaUrl: mediaUrl),
               child: Icon(
                 Icons.chat,
                 size: 28.0,
@@ -202,22 +228,27 @@ class _PostState extends State<Post> {
                     TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
               ),
             ),
-            Expanded(child: Text(desc!))
+            Expanded(child: Text(desc))
           ],
         ),
       ],
     );
   }
-showComments(BuildContext context ,{required String postId,required String ownerId,required String mediaUrl}){
-Navigator.push(context, MaterialPageRoute(builder: (context)=>Comments(
-  postId:postId,
-  postOwnerId:ownerId,
-  postMediaUrl:mediaUrl
-)));
-}
+
+  showComments(BuildContext context,
+      {required String postId,
+      required String ownerId,
+      required String mediaUrl}) {
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => Comments(
+                postId: postId, postOwnerId: ownerId, postMediaUrl: mediaUrl)));
+  }
+
   @override
   Widget build(BuildContext context) {
-    // isLiked = (likes?[currentUserId] == true);
+    isLiked = (likes[currentUserId] == true);
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
