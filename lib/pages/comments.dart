@@ -34,6 +34,20 @@ class CommentsState extends State<Comments> {
       'avatarUrl': currentUser?.photoUrl,
       'userId': currentUser?.id,
     });
+    // bool isNotOwner = postOwnerId != currentUser?.id;
+    // if (isNotOwner) 
+      activityDOc.doc(postOwnerId).collection('feedItems').add({
+        'type': 'comment',
+        'comment': commentController.text,
+        'username': currentUser?.username,
+        'userId': currentUser?.id,
+        'userProfile': currentUser?.photoUrl,
+        'postId': postId,
+        'mediaUrl': postMediaUrl,
+        'timestamp': timestamp,
+      });
+    // }
+
     commentController.clear();
   }
 
