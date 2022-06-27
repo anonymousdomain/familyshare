@@ -16,6 +16,7 @@ final googleSignIn = GoogleSignIn();
 final usersDoc = FirebaseFirestore.instance.collection('users');
 final posts = FirebaseFirestore.instance.collection('posts');
 final storage = FirebaseStorage.instance.ref();
+final commentsDoc=FirebaseFirestore.instance.collection('comments');
 User? currentUser;
 
 class Home extends StatefulWidget {
