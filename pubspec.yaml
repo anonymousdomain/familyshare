@@ -46,6 +46,7 @@ dependencies:
   image: ^3.2.0
   uuid: ^3.0.6
   firebase_storage: ^10.2.18
+  animator: ^3.2.0
 
 dev_dependencies:
   flutter_test:

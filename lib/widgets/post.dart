@@ -40,6 +40,11 @@ class Post extends StatefulWidget {
         count += 1;
       }
     });
+    likes.values.forEach((val) {
+      if (val == false) {
+        count -= 1;
+      }
+    });
     return count;
   }
 
@@ -56,6 +61,7 @@ class Post extends StatefulWidget {
 }
 
 class _PostState extends State<Post> {
+  final String? currentUserId = currentUser?.id;
   final String? postId;
   final String? ownerId;
   final String? username;
@@ -63,6 +69,7 @@ class _PostState extends State<Post> {
   final String? mediaUrl;
   Map? likes;
   int? likeCount;
+  late bool isLiked;
   _PostState(
       {this.postId,
       this.ownerId,
@@ -71,108 +78,132 @@ class _PostState extends State<Post> {
       this.mediaUrl,
       this.likes,
       this.likeCount});
-       buildPostHeader() {
-      return FutureBuilder<DocumentSnapshot>(
-        future: usersDoc.doc(widget.ownerId).get(),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) return circularProgress();
-          User user = User.fromDocument(snapshot.data!);
-          return ListTile(
-            leading: CircleAvatar(
-              backgroundColor: Colors.grey,
-              backgroundImage: CachedNetworkImageProvider(user.photoUrl!),
+
+  handleLikePost() {
+    bool liked = likes?[currentUserId] == true;
+
+    if (liked) {
+      posts.doc(ownerId).collection('userPosts').doc(postId).update(
+        {'likes.$currentUserId': false},
+      );
+      setState(() {
+        likeCount = (likeCount! - 1);
+        isLiked = false;
+        likes?[currentUserId] = false;
+      });
+    } else if (!liked) {
+      posts.doc(ownerId).collection('userPosts').doc(postId).update(
+        {'likes.$currentUserId': true},
+      );
+      setState(() {
+        likeCount = (likeCount! + 1);
+        isLiked = true;
+        likes?[currentUserId] = true;
+      });
+    }
+  }
+
+  buildPostHeader() {
+    return FutureBuilder<DocumentSnapshot>(
+      future: usersDoc.doc(widget.ownerId).get(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) return circularProgress();
+        User user = User.fromDocument(snapshot.data!);
+        return ListTile(
+          leading: CircleAvatar(
+            backgroundColor: Colors.grey,
+            backgroundImage: CachedNetworkImageProvider(user.photoUrl!),
+          ),
+          title: GestureDetector(
+            onTap: () {},
+            child: Text(
+              user.username.toString(),
+              style:
+                  TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
             ),
-            title: GestureDetector(
+          ),
+          subtitle: Text(user.bio!),
+          trailing: IconButton(onPressed: () {}, icon: Icon(Icons.more_vert)),
+        );
+      },
+    );
+  }
+
+  buildPostImage() {
+    return GestureDetector(
+      onDoubleTap: handleLikePost,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [CachedNetworkImage(imageUrl: mediaUrl!)],
+      ),
+    );
+  }
+
+  buildPostFooter() {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.only(top: 40.0, left: 20.0),
+            ),
+            //likes
+            GestureDetector(
+              onTap: handleLikePost,
+              child: Icon(
+                isLiked ? Icons.favorite : Icons.favorite_border,
+                size: 28.0,
+                color: Colors.pink,
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.only(right: 20.0),
+            ),
+            //comments
+            GestureDetector(
               onTap: () {},
+              child: Icon(
+                Icons.chat,
+                size: 28.0,
+                color: Colors.blue,
+              ),
+            )
+          ],
+        ),
+        Row(
+          children: [
+            Container(
+              margin: EdgeInsets.only(left: 20.0),
               child: Text(
-                user.username.toString(),
+                '$likeCount likes',
+                style:
+                    TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+              ),
+            )
+          ],
+        ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              margin: EdgeInsets.only(left: 20.0),
+              child: Text(
+                '$username ',
                 style:
                     TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
               ),
             ),
-            subtitle: Text(user.bio!),
-            trailing: IconButton(onPressed: () {}, icon: Icon(Icons.more_vert)),
-          );
-        },
-      );
-    }
-
-    buildPostImage() {
-      return GestureDetector(
-        onDoubleTap: () {},
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-           CachedNetworkImage(imageUrl: mediaUrl!)
+            Expanded(child: Text(desc!))
           ],
         ),
-      );
-    }
-
-    buildPostFooter() {
-      return Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Padding(
-                padding: EdgeInsets.only(top: 40.0, left: 20.0),
-              ),
-              //likes
-              GestureDetector(
-                onTap: () {},
-                child: Icon(
-                  Icons.favorite_border,
-                  size: 28.0,
-                  color: Colors.pink,
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.only(right: 20.0),
-              ),
-              //comments
-              GestureDetector(
-                onTap: () {},
-                child: Icon(
-                  Icons.chat,
-                  size: 28.0,
-                  color: Colors.blue,
-                ),
-              )
-            ],
-          ),
-          Row(
-            children: [
-              Container(
-                margin: EdgeInsets.only(left: 20.0),
-                child: Text(
-                  '$likeCount likes',
-                  style: TextStyle(
-                      color: Colors.black, fontWeight: FontWeight.bold),
-                ),
-              )
-            ],
-          ),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                margin: EdgeInsets.only(left: 20.0),
-                child: Text(
-                  '$username ',
-                  style: TextStyle(
-                      color: Colors.black, fontWeight: FontWeight.bold),
-                ),
-              ),
-              Expanded(child: Text(desc!))
-            ],
-          ),
-        ],
-      );
-    }
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    isLiked = (likes?[currentUserId] == true);
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
