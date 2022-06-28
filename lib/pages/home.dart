@@ -18,6 +18,8 @@ final posts = FirebaseFirestore.instance.collection('posts');
 final storage = FirebaseStorage.instance.ref();
 final commentsDoc = FirebaseFirestore.instance.collection('comments');
 final activityDOc = FirebaseFirestore.instance.collection('feed');
+final followerDoc = FirebaseFirestore.instance.collection('followers');
+final followingDoc = FirebaseFirestore.instance.collection('following');
 User? currentUser;
 
 class Home extends StatefulWidget {
@@ -122,7 +124,9 @@ class _HomeState extends State<Home> {
           ActivityFeed(),
           Upload(currentUser),
           Search(),
-          Profile(profileId:currentUser?.id,),
+          Profile(
+            profileId: currentUser?.id,
+          ),
         ],
       ),
       bottomNavigationBar: CupertinoTabBar(
