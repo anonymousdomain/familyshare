@@ -12,7 +12,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 class Profile extends StatefulWidget {
   final String? profileId;
-  const Profile(this.profileId);
+  const Profile({this.profileId});
   @override
   _ProfileState createState() => _ProfileState();
 }
@@ -109,6 +109,8 @@ class _ProfileState extends State<Profile> {
     bool isProfileOwner = currentUserId == widget.profileId;
     if (isProfileOwner) {
       return buildButton(label: 'Edit Your Profile', function: editProfile);
+    } else {
+      return Text('');
     }
   }
 
@@ -237,7 +239,7 @@ class _ProfileState extends State<Profile> {
 
   setOrientation(String postOrientation) {
     setState(() {
-     this.postOrientation = postOrientation;
+      this.postOrientation = postOrientation;
     });
   }
 

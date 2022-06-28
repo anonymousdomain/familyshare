@@ -1,6 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:familyshare/pages/home.dart';
+import 'package:familyshare/pages/post_screen.dart';
+import 'package:familyshare/pages/profile.dart';
 import 'package:familyshare/widgets/header.dart';
 import 'package:familyshare/widgets/progress.dart';
 import 'package:flutter/material.dart';
@@ -77,10 +79,19 @@ class ActivityFeedItem extends StatelessWidget {
         comment: doc.get('comment'),
         timestamp: doc.get('timestamp'));
   }
-  checkMediaPreview() {
+  showPost(context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: ((context) => PostScreen(userId: userId, postId: postId)),
+      ),
+    );
+  }
+
+  checkMediaPreview(context) {
     if (type == 'like' || type == 'comment') {
       mediaPreview = GestureDetector(
-        onTap: () {},
+        onTap: () => showPost(context),
         child: SizedBox(
           height: 50.0,
           width: 50.0,
@@ -113,14 +124,14 @@ class ActivityFeedItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    checkMediaPreview();
+    checkMediaPreview(context);
     return Padding(
       padding: EdgeInsets.only(bottom: 2.0),
       child: Container(
         color: Colors.white54,
         child: ListTile(
           title: GestureDetector(
-            onTap: () {},
+            onTap: () => showProfile(context, profileId: userId),
             child: RichText(
               overflow: TextOverflow.ellipsis,
               text: TextSpan(
@@ -147,4 +158,13 @@ class ActivityFeedItem extends StatelessWidget {
       ),
     );
   }
+}
+
+showProfile(BuildContext context, {String? profileId}) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => Profile(profileId: profileId),
+    ),
+  );
 }

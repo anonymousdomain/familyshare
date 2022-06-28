@@ -122,7 +122,7 @@ class _HomeState extends State<Home> {
           ActivityFeed(),
           Upload(currentUser),
           Search(),
-          Profile(currentUser?.id),
+          Profile(profileId:currentUser?.id,),
         ],
       ),
       bottomNavigationBar: CupertinoTabBar(
